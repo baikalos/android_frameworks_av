@@ -25,6 +25,7 @@
 
 #include <tinyxml2.h>
 #include <log/log.h>
+#include <cutils/properties.h>
 
 #include <media/EffectsConfig.h>
 #include <media/TypeConverter.h>
@@ -144,6 +145,8 @@ bool stringToStreamType(const char *streamName, audio_devices_t* type) {
 
 /** Parse a library xml note and push the result in libraries or return false on failure. */
 bool parseLibrary(const XMLElement& xmlLibrary, Libraries* libraries) {
+    char property_name_buf[64];
+
     const char* name = xmlLibrary.Attribute("name");
     const char* path = xmlLibrary.Attribute("path");
     if (name == nullptr || path == nullptr) {
@@ -152,8 +155,19 @@ bool parseLibrary(const XMLElement& xmlLibrary, Libraries* libraries) {
     }
 
     // need this temp variable because `struct Library` doesn't have a constructor
-    Library lib({.name = name, .path = path});
-    libraries->push_back(std::make_shared<const Library>(lib));
+    //Library lib({.name = name, .path = path});
+    //libraries->push_back(std::make_shared<const Library>(lib));
+    strncpy(property_name_buf,"persist.baikal.lib.",64);
+    strncat(property_name_buf,name,64);
+    bool disabled = property_get_bool(property_name_buf, false);
+    if( disabled ){
+        ALOGE("Baikal: effects library disabled: %s %s", property_name_buf, dump(xmlLibrary));
+        return false;
+    } else {
+        ALOGE("Baikal: effects library enabled: %s %s", property_name_buf, dump(xmlLibrary));
+    }
+
+    libraries->push_back({name, path});
     return true;
 }
 
@@ -171,6 +185,7 @@ T findByName(const char* name, std::vector<T>& collection) {
  * @return true and pushes the effect in effects on success,
  *         false on failure. */
 bool parseEffect(const XMLElement& xmlEffect, Libraries& libraries, Effects* effects) {
+    char property_name_buf[64];
     Effect effect{};
 
     const char* name = xmlEffect.Attribute("name");
@@ -178,6 +193,17 @@ bool parseEffect(const XMLElement& xmlEffect, Libraries& libraries, Effects* eff
         ALOGE("%s must have a name: %s", xmlEffect.Value(), dump(xmlEffect));
         return false;
     }
+
+    strncpy(property_name_buf,"persist.baikal.eff.",64);
+    strncat(property_name_buf,name,64);
+    bool disabled = property_get_bool(property_name_buf, false);
+    if( disabled ){
+        ALOGE("Baikal: effect disabled: %s  %s", property_name_buf, dump(xmlEffect));
+        return false;
+    } else {
+        ALOGI("Baikal: effect enabled: %s  %s", property_name_buf, dump(xmlEffect));
+    }
+
     effect.name = name;
 
     // Function to parse effect.library and effect.uuid from xml
@@ -285,17 +311,19 @@ bool parseDeviceEffects(
     return true;
 }
 
+
+
 /** Internal version of the public parse(const char* path) where path always exist. */
-ParsingResult parseWithPath(std::string&& path) {
+int parseWithPath(std::string& path, std::unique_ptr<Config>& config) {
     XMLDocument doc;
     doc.LoadFile(path.c_str());
     if (doc.Error()) {
         ALOGE("Failed to parse %s: Tinyxml2 error (%d): %s", path.c_str(),
               doc.ErrorID(), doc.ErrorStr());
-        return {nullptr, 0, std::move(path)};
+        //return {nullptr, 0, std::move(path)};
+        return 0;
     }
 
-    auto config = std::make_unique<Config>();
     size_t nbSkippedElements = 0;
     auto registerFailure = [&nbSkippedElements](bool result) {
         nbSkippedElements += result ? 0 : 1;
@@ -338,10 +366,20 @@ ParsingResult parseWithPath(std::string&& path) {
             }
         }
     }
-    return {std::move(config), nbSkippedElements, std::move(path)};
+    //return {std::move(config), nbSkippedElements, std::move(path)};
+    return nbSkippedElements;
 }
 
 }; // namespace
+
+/** Internal version of the public parse(const char* path) where path always exist. */
+ParsingResult parseWithPath(std::string&& path) {
+    size_t nbSkippedElements = 0;
+    auto config = std::make_unique<Config>();
+    nbSkippedElements = parseWithPath(path,config);
+    return {std::move(config), nbSkippedElements, std::move(path)};
+}
+
 
 ParsingResult parse(const char* path) {
     if (path != nullptr) {
