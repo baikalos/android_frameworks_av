@@ -1296,6 +1296,8 @@ bool CCodecConfig::updateFormats(Domain domain) {
     }
 
     ReflectedParamUpdater::Dict reflected = mParamUpdater->getParams(paramPointers);
+
+#if defined(LOG_NDEBUG) && !LOG_NDEBUG
     std::string config = reflected.debugString();
     std::set<std::string> configLines;
     std::string diff;
@@ -1315,6 +1317,7 @@ bool CCodecConfig::updateFormats(Domain domain) {
         ALOGD("c2 config diff is %s", diff.c_str());
     }
     mLastConfig.swap(configLines);
+#endif
 
     bool changed = false;
     if (domain & mInputDomain) {
