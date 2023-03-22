@@ -95,10 +95,6 @@ const engineConfig::ProductStrategies gOrderedStrategies = {
                AUDIO_FLAG_NONE, ""}
           },
          },
-         {"system", AUDIO_STREAM_SYSTEM, "AUDIO_STREAM_SYSTEM",
-          {{AUDIO_CONTENT_TYPE_UNKNOWN, AUDIO_USAGE_ASSISTANCE_SONIFICATION,
-            AUDIO_SOURCE_DEFAULT, AUDIO_FLAG_NONE, ""}}
-         }
      },
     },
     {"STRATEGY_DTMF",
@@ -128,6 +124,10 @@ const engineConfig::ProductStrategies gOrderedStrategies = {
               {AUDIO_CONTENT_TYPE_ULTRASOUND, AUDIO_USAGE_UNKNOWN, AUDIO_SOURCE_DEFAULT,
                 AUDIO_FLAG_NONE, ""}
           }
+         },
+         {"system", AUDIO_STREAM_SYSTEM, "AUDIO_STREAM_SYSTEM",
+          {{AUDIO_CONTENT_TYPE_UNKNOWN, AUDIO_USAGE_ASSISTANCE_SONIFICATION,
+            AUDIO_SOURCE_DEFAULT, AUDIO_FLAG_NONE, ""}}
          }
      },
     }
