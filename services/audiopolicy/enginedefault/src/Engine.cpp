@@ -15,7 +15,7 @@
  */
 
 #define LOG_TAG "APM::AudioPolicyEngine"
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 
 //#define VERY_VERBOSE_LOGGING
 #ifdef VERY_VERBOSE_LOGGING
@@ -34,6 +34,7 @@
 #include <media/AudioContainers.h>
 #include <utils/String8.h>
 #include <utils/Log.h>
+#include <cutils/properties.h>
 
 namespace android
 {
@@ -265,6 +266,28 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
                                               const SwAudioOutputCollection &outputs) const
 {
     DeviceVector devices;
+    char value[PROPERTY_VALUE_MAX];
+
+    ALOGI("getDevicesForStrategyInt() for %d", strategy);
+
+    //if( outputs.isA2dpSupported() ) {
+    switch(strategy) {
+        case STRATEGY_SONIFICATION:
+        case STRATEGY_SONIFICATION_RESPECTFUL:
+        case STRATEGY_ENFORCED_AUDIBLE:
+            property_get("persist.baikal.sonif_a2dp", value, "0");
+            if( std::string(value) == "1" ) {
+                ALOGI("getDevicesForStrategyInt() for %d force to speaker %d", strategy, STRATEGY_TRANSMITTED_THROUGH_SPEAKER);
+                strategy = STRATEGY_TRANSMITTED_THROUGH_SPEAKER;
+            } else if( std::string(value) == "2" ) {
+                ALOGI("getDevicesForStrategyInt() for %d duplicate to speaker %d", strategy, STRATEGY_SONIFICATION);
+                strategy = STRATEGY_SONIFICATION;
+            }
+            break;
+        default:
+            break;
+    }
+
 
     switch (strategy) {
 
@@ -476,7 +499,9 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
                  "%s no default device defined", __func__);
     }
 
-    ALOGVV("%s strategy %d, device %s", __func__,
+//    ALOGVV("%s strategy %d, device %s", __func__,
+//           strategy, dumpDeviceTypes(devices.types()).c_str());
+    ALOGI("%s strategy %d, device %s", __func__,
            strategy, dumpDeviceTypes(devices.types()).c_str());
     return devices;
 }
