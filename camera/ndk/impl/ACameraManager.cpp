@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 #define LOG_TAG "ACameraManager"
 
 #include <memory>
@@ -125,9 +125,18 @@ sp<hardware::ICameraService> CameraManagerGlobal::getCameraServiceLocked() {
         std::vector<hardware::CameraStatus> cameraStatuses{};
         mCameraService->addListener(mCameraServiceListener, &cameraStatuses);
         for (auto& c : cameraStatuses) {
+            if (!validStatus(c.status)) { 
+                unsigned int sz = c.unavailablePhysicalIds.size();
+                ALOGE("%s: Invalid status 0 %d: %s -> (%u)",
+                        __FUNCTION__, c.status, c.cameraId.c_str(), sz);
+                continue;
+            }
+
             onStatusChangedLocked(c.status, c.cameraId);
 
             for (auto& unavailablePhysicalId : c.unavailablePhysicalIds) {
+                ALOGE("%s: Unavailable physical IDs: %s -> (%s)",
+                        __FUNCTION__, c.cameraId.c_str(), unavailablePhysicalId.c_str());
                 onStatusChangedLocked(hardware::ICameraServiceListener::STATUS_NOT_PRESENT,
                         c.cameraId, unavailablePhysicalId);
             }
@@ -504,7 +513,7 @@ void CameraManagerGlobal::onStatusChanged(
 void CameraManagerGlobal::onStatusChangedLocked(
         int32_t status, const String8& cameraId) {
     if (!validStatus(status)) {
-        ALOGE("%s: Invalid status %d", __FUNCTION__, status);
+        ALOGE("%s: Invalid status 1 %d", __FUNCTION__, status);
         return;
     }
 
@@ -554,10 +563,11 @@ void CameraManagerGlobal::onStatusChanged(
 void CameraManagerGlobal::onStatusChangedLocked(
         int32_t status, const String8& cameraId, const String8& physicalCameraId) {
     if (!validStatus(status)) {
-        ALOGE("%s: Invalid status %d", __FUNCTION__, status);
+        ALOGE("%s: Invalid status 2 %d", __FUNCTION__, status);
         return;
     }
 
+    ALOGE("%s: Loocking for camera with id %s", __FUNCTION__, cameraId.c_str());
     auto logicalStatus = mDeviceStatusMap.find(cameraId);
     if (logicalStatus == mDeviceStatusMap.end()) {
         ALOGE("%s: Physical camera id %s status change on a non-present id %s",
