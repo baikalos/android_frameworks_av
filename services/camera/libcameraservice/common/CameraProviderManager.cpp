@@ -16,7 +16,7 @@
 
 #define LOG_TAG "CameraProviderManager"
 #define ATRACE_TAG ATRACE_TAG_CAMERA
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 
 #include "CameraProviderManager.h"
 
@@ -184,12 +184,15 @@ std::pair<int, int> CameraProviderManager::getCameraCount() const {
             }
             switch(deviceKind) {
                 case SystemCameraKind::PUBLIC:
+                    ALOGE("%s: PUBLIC camera id %s", __FUNCTION__, id.c_str());
                     publicCameraCount++;
                     break;
                 case SystemCameraKind::SYSTEM_ONLY_CAMERA:
+                    ALOGE("%s: SYSTEM_ONLY_CAMERA camera id %s", __FUNCTION__, id.c_str());
                     systemCameraCount++;
                     break;
                 default:
+                    ALOGE("%s: default (%d) camera id %s, skipping", __FUNCTION__, static_cast<int32_t>(deviceKind), id.c_str());
                     break;
             }
         }
@@ -203,9 +206,11 @@ std::vector<std::string> CameraProviderManager::getCameraDeviceIds(std::unordere
     std::vector<std::string> deviceIds;
     for (auto& provider : mProviders) {
         for (auto& id : provider->mUniqueCameraIds) {
+            ALOGE("%s: getCameraDeviceIds camera id %s", __FUNCTION__, id.c_str());
             deviceIds.push_back(id);
             if (unavailablePhysicalIds != nullptr &&
                     provider->mUnavailablePhysicalCameras.count(id) > 0) {
+                ALOGE("%s: getCameraDeviceIds unavailablePhysicalId camera id %s", __FUNCTION__, id.c_str());
                 (*unavailablePhysicalIds)[id] = provider->mUnavailablePhysicalCameras.at(id);
             }
         }
@@ -223,8 +228,10 @@ void CameraProviderManager::collectDeviceIdsLocked(const std::vector<std::string
             continue;
         }
         if (deviceKind == SystemCameraKind::SYSTEM_ONLY_CAMERA) {
+            ALOGE("%s: System only camera id %s", __FUNCTION__, deviceId.c_str());
             systemDeviceIds.push_back(deviceId);
         } else {
+            ALOGE("%s: Public camera id %s", __FUNCTION__, deviceId.c_str());
             publicDeviceIds.push_back(deviceId);
         }
     }
@@ -250,7 +257,7 @@ std::vector<std::string> CameraProviderManager::getAPI1CompatibleCameraDeviceIds
         // API1 app doesn't handle logical and physical camera devices well. So
         // for each camera facing, only take the first id advertised by HAL in
         // all [logical, physical1, physical2, ...] id combos, and filter out the rest.
-        filterLogicalCameraIdsLocked(providerDeviceIds);
+        // filterLogicalCameraIdsLocked(providerDeviceIds);
         collectDeviceIdsLocked(providerDeviceIds, publicDeviceIds, systemDeviceIds);
     }
     auto sortFunc =
@@ -1866,7 +1873,7 @@ status_t CameraProviderManager::ProviderInfo::addDevice(
         const std::string& name, CameraDeviceStatus initialStatus,
         /*out*/ std::string* parsedId) {
 
-    ALOGI("Enumerating new camera device: %s", name.c_str());
+    ALOGI("Enumerating new camera id device: %s", name.c_str());
 
     uint16_t major, minor;
     std::string type, id;
