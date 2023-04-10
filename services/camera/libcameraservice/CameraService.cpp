@@ -16,7 +16,7 @@
 
 #define LOG_TAG "CameraService"
 #define ATRACE_TAG ATRACE_TAG_CAMERA
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 
 #include <algorithm>
 #include <climits>
@@ -743,6 +743,10 @@ std::string CameraService::cameraIdIntToStrLocked(int cameraIdInt) {
     const std::vector<std::string> *deviceIds = &mNormalDeviceIdsWithoutSystemCamera;
     auto callingPid = CameraThreadState::getCallingPid();
     auto callingUid = CameraThreadState::getCallingUid();
+
+    ALOGE("%s: input id %d invalid: valid range 1 (0, %zu) valid range 2 (0, %zu) ",
+                __FUNCTION__, cameraIdInt, mNormalDeviceIdsWithoutSystemCamera.size(), mNormalDeviceIds.size() );
+
     if (checkPermission(sSystemCameraPermission, callingPid, callingUid,
             /*logPermissionFailure*/false) || getpid() == callingPid) {
         deviceIds = &mNormalDeviceIds;
@@ -1393,8 +1397,8 @@ void CameraService::finishConnectLocked(const sp<BasicClient>& client,
                     __FUNCTION__, i->getKey().string());
         }
 
-        LOG_ALWAYS_FATAL("%s: Invalid state for CameraService, clients not evicted properly",
-                __FUNCTION__);
+        //LOG_ALWAYS_FATAL("%s: Invalid state for CameraService, clients not evicted properly",
+        //        __FUNCTION__);
     }
 
     // And register a death notification for the client callback. Do
@@ -1529,7 +1533,7 @@ status_t CameraService::handleEvictionsLocked(const String8& cameraId, int clien
             if (current != nullptr) {
                 return -EBUSY; // CAMERA_IN_USE
             } else {
-                return -EUSERS; // MAX_CAMERAS_IN_USE
+                //return -EUSERS; // MAX_CAMERAS_IN_USE
             }
         }
 
@@ -1539,8 +1543,8 @@ status_t CameraService::handleEvictionsLocked(const String8& cameraId, int clien
                 ALOGE("%s: Invalid state: Null client in active client list.", __FUNCTION__);
 
                 // TODO: Remove this
-                LOG_ALWAYS_FATAL("%s: Invalid state for CameraService, null client in active list",
-                        __FUNCTION__);
+                //LOG_ALWAYS_FATAL("%s: Invalid state for CameraService, null client in active list",
+                //        __FUNCTION__);
                 mActiveClientManager.remove(i);
                 continue;
             }
