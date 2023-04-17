@@ -1393,8 +1393,8 @@ void CameraService::finishConnectLocked(const sp<BasicClient>& client,
                     __FUNCTION__, i->getKey().string());
         }
 
-        LOG_ALWAYS_FATAL("%s: Invalid state for CameraService, clients not evicted properly",
-                __FUNCTION__);
+        //LOG_ALWAYS_FATAL("%s: Invalid state for CameraService, clients not evicted properly",
+        //        __FUNCTION__);
     }
 
     // And register a death notification for the client callback. Do
@@ -1529,7 +1529,7 @@ status_t CameraService::handleEvictionsLocked(const String8& cameraId, int clien
             if (current != nullptr) {
                 return -EBUSY; // CAMERA_IN_USE
             } else {
-                return -EUSERS; // MAX_CAMERAS_IN_USE
+                //return -EUSERS; // MAX_CAMERAS_IN_USE
             }
         }
 
@@ -1539,8 +1539,8 @@ status_t CameraService::handleEvictionsLocked(const String8& cameraId, int clien
                 ALOGE("%s: Invalid state: Null client in active client list.", __FUNCTION__);
 
                 // TODO: Remove this
-                LOG_ALWAYS_FATAL("%s: Invalid state for CameraService, null client in active list",
-                        __FUNCTION__);
+                //LOG_ALWAYS_FATAL("%s: Invalid state for CameraService, null client in active list",
+                //        __FUNCTION__);
                 mActiveClientManager.remove(i);
                 continue;
             }
@@ -1945,8 +1945,8 @@ Status CameraService::connectHelper(const sp<CALLBACK>& cameraCb, const String8&
         }
         client = static_cast<CLIENT*>(tmp.get());
 
-        LOG_ALWAYS_FATAL_IF(client.get() == nullptr, "%s: CameraService in invalid state",
-                __FUNCTION__);
+        //LOG_ALWAYS_FATAL_IF(client.get() == nullptr, "%s: CameraService in invalid state",
+        //        __FUNCTION__);
 
         String8 monitorTags = isClientWatched(client.get()) ? mMonitorTags : String8("");
         err = client->initialize(mCameraProviderManager, monitorTags);
