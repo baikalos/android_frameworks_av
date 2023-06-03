@@ -154,9 +154,6 @@ bool parseLibrary(const XMLElement& xmlLibrary, Libraries* libraries) {
         return false;
     }
 
-    // need this temp variable because `struct Library` doesn't have a constructor
-    //Library lib({.name = name, .path = path});
-    //libraries->push_back(std::make_shared<const Library>(lib));
     strncpy(property_name_buf,"persist.baikal.lib.",64);
     strncat(property_name_buf,name,64);
     bool disabled = property_get_bool(property_name_buf, false);
@@ -166,8 +163,9 @@ bool parseLibrary(const XMLElement& xmlLibrary, Libraries* libraries) {
     } else {
         ALOGE("Baikal: effects library enabled: %s %s", property_name_buf, dump(xmlLibrary));
     }
-
-    libraries->push_back({name, path});
+    // need this temp variable because `struct Library` doesn't have a constructor
+    Library lib({.name = name, .path = path});
+    libraries->push_back(std::make_shared<const Library>(lib));
     return true;
 }
 
