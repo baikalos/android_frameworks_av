@@ -15,7 +15,7 @@
  */
 
 #define LOG_TAG "APM::AudioPolicyEngine"
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 
 //#define VERY_VERBOSE_LOGGING
 #ifdef VERY_VERBOSE_LOGGING
@@ -268,7 +268,7 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
     DeviceVector devices;
     char value[PROPERTY_VALUE_MAX];
 
-    ALOGI("getDevicesForStrategyInt() for %d", strategy);
+    //ALOGI("getDevicesForStrategyInt() for %d", strategy);
 
     //if( outputs.isA2dpSupported() ) {
     switch(strategy) {
@@ -499,9 +499,7 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
                  "%s no default device defined", __func__);
     }
 
-//    ALOGVV("%s strategy %d, device %s", __func__,
-//           strategy, dumpDeviceTypes(devices.types()).c_str());
-    ALOGI("%s strategy %d, device %s", __func__,
+    ALOGVV("%s strategy %d, device %s", __func__,
            strategy, dumpDeviceTypes(devices.types()).c_str());
     return devices;
 }
