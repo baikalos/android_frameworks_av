@@ -958,12 +958,13 @@ SystemCameraKind CameraProviderManager::ProviderInfo::DeviceInfo3::getSystemCame
 
     // Go through the capabilities and check if it has
     // ANDROID_REQUEST_AVAILABLE_CAPABILITIES_SYSTEM_CAMERA
-    for (size_t i = 0; i < entryCap.count; ++i) {
+    /*for (size_t i = 0; i < entryCap.count; ++i) {
         uint8_t capability = entryCap.data.u8[i];
         if (capability == ANDROID_REQUEST_AVAILABLE_CAPABILITIES_SYSTEM_CAMERA) {
             return SystemCameraKind::SYSTEM_ONLY_CAMERA;
         }
-    }
+    }*/
+
     return SystemCameraKind::PUBLIC;
 }
 
