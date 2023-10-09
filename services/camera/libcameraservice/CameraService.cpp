@@ -1397,6 +1397,10 @@ void CameraService::finishConnectLocked(const sp<BasicClient>& client,
     logConnected(desc->getKey(), static_cast<int>(desc->getOwnerId()),
             String8(client->getPackageName()));
 
+    if (strcmp(String8(client->getPackageName()).string(), "com.android.camera") == 0) {
+        evicted.clear();
+    }
+
     if (evicted.size() > 0) {
         // This should never happen - clients should already have been removed in disconnect
         for (auto& i : evicted) {
@@ -1404,8 +1408,8 @@ void CameraService::finishConnectLocked(const sp<BasicClient>& client,
                     __FUNCTION__, i->getKey().string());
         }
 
-        //LOG_ALWAYS_FATAL("%s: Invalid state for CameraService, clients not evicted properly",
-        //        __FUNCTION__);
+        LOG_ALWAYS_FATAL("%s: Invalid state for CameraService, clients not evicted properly",
+                __FUNCTION__);
     }
 
     // And register a death notification for the client callback. Do
@@ -1503,6 +1507,10 @@ status_t CameraService::handleEvictionsLocked(const String8& cameraId, int clien
         // Find clients that would be evicted
         auto evicted = mActiveClientManager.wouldEvict(clientDescriptor);
 
+        if (strcmp(String8(packageName).string(), "com.android.camera") == 0) {
+            evicted.clear();
+        }
+
         // If the incoming client was 'evicted,' higher priority clients have the camera in the
         // background, so we cannot do evictions
         if (std::find(evicted.begin(), evicted.end(), clientDescriptor) != evicted.end()) {
@@ -1540,7 +1548,7 @@ status_t CameraService::handleEvictionsLocked(const String8& cameraId, int clien
             if (current != nullptr) {
                 return -EBUSY; // CAMERA_IN_USE
             } else {
-                //return -EUSERS; // MAX_CAMERAS_IN_USE
+                return -EUSERS; // MAX_CAMERAS_IN_USE
             }
         }
 
