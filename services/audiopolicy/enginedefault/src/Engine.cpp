@@ -268,31 +268,25 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
     DeviceVector devices;
     char value[PROPERTY_VALUE_MAX];
 
-    //ALOGI("getDevicesForStrategyInt() for %d", strategy);
-
-    //if( outputs.isA2dpSupported() ) {
-    switch(strategy) {
-        case STRATEGY_SONIFICATION:
-        case STRATEGY_SONIFICATION_RESPECTFUL:
-        case STRATEGY_ENFORCED_AUDIBLE:
-            property_get("persist.baikal.sonif_a2dp", value, "0");
-            if( std::string(value) == "1" ) {
-                ALOGI("getDevicesForStrategyInt() for %d force to speaker %d", strategy, STRATEGY_TRANSMITTED_THROUGH_SPEAKER);
-                strategy = STRATEGY_TRANSMITTED_THROUGH_SPEAKER;
-            } else if( std::string(value) == "2" ) {
-                ALOGI("getDevicesForStrategyInt() for %d duplicate to speaker %d", strategy, STRATEGY_SONIFICATION);
-                strategy = STRATEGY_SONIFICATION;
-            }
-            break;
-        default:
-            break;
+    if( strategy == STRATEGY_SONIFICATION_RESPECTFUL ) {
+        property_get("persist.baikal.sonif_a2dp", value, "0");
+        if( std::string(value) == "1" ) {
+            strategy = STRATEGY_ENFORCED_AUDIBLE;
+        } else if( std::string(value) == "2" ) {
+            strategy = STRATEGY_SONIFICATION;
+        }
     }
-
 
     switch (strategy) {
 
     case STRATEGY_TRANSMITTED_THROUGH_SPEAKER:
         devices = availableOutputDevices.getDevicesFromType(AUDIO_DEVICE_OUT_SPEAKER);
+        break;
+
+
+    case STRATEGY_ENFORCED_AUDIBLE:
+        devices = availableOutputDevices.getFirstDevicesFromTypes({
+                AUDIO_DEVICE_OUT_DGTL_DOCK_HEADSET, AUDIO_DEVICE_OUT_SPEAKER});
         break;
 
     case STRATEGY_PHONE: {
@@ -312,7 +306,7 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
     } break;
 
     case STRATEGY_SONIFICATION:
-    case STRATEGY_ENFORCED_AUDIBLE:
+        // case STRATEGY_ENFORCED_AUDIBLE:
         // strategy STRATEGY_ENFORCED_AUDIBLE uses same routing policy as STRATEGY_SONIFICATION
         // except:
         //   - when in call where it doesn't default to STRATEGY_PHONE behavior
@@ -490,7 +484,7 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
     }
 
     if (devices.isEmpty()) {
-        ALOGV("%s no device found for strategy %d", __func__, strategy);
+        ALOGW("%s no device found for strategy %d", __func__, strategy);
         sp<DeviceDescriptor> defaultOutputDevice = getApmObserver()->getDefaultOutputDevice();
         if (defaultOutputDevice != nullptr) {
             devices.add(defaultOutputDevice);
@@ -500,7 +494,8 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
     }
 
     ALOGVV("%s strategy %d, device %s", __func__,
-           strategy, dumpDeviceTypes(devices.types()).c_str());
+        strategy, dumpDeviceTypes(devices.types()).c_str());
+
     return devices;
 }
 
