@@ -52,9 +52,7 @@ const engineConfig::ProductStrategies gOrderedStrategies = {
          {"", AUDIO_STREAM_ENFORCED_AUDIBLE, "AUDIO_STREAM_ENFORCED_AUDIBLE",
           {
               {AUDIO_CONTENT_TYPE_UNKNOWN, AUDIO_USAGE_UNKNOWN, AUDIO_SOURCE_DEFAULT,
-               AUDIO_FLAG_AUDIBILITY_ENFORCED, ""},
-              {AUDIO_CONTENT_TYPE_SONIFICATION, AUDIO_USAGE_NOTIFICATION, AUDIO_SOURCE_DEFAULT,
-               AUDIO_FLAG_NONE, ""},
+               AUDIO_FLAG_AUDIBILITY_ENFORCED, ""}
           }
          }
      },
