@@ -17,7 +17,7 @@
 
 
 #define LOG_TAG "AudioFlinger"
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 
 #include <algorithm>
 
@@ -2844,6 +2844,31 @@ static const effect_uuid_t SL_IID_DAP_ = // 46d279d9-9be7-453d-9d7c-ef937f675587
 { 0x46d279d9, 0x9be7, 0x453d, 0x9d7c, {0xef, 0x93, 0x7f, 0x67, 0x55, 0x87} };
 const effect_uuid_t * const SL_IID_DAP = &SL_IID_DAP_;
 
+// Dolby Atmos
+static const effect_uuid_t SL_IID_VQE_ = // 64a0f614-7fa4-48b8-b081-d59dc954616f
+{ 0x64a0f614, 0x7fa4, 0x48b8, 0xb081, {0xd5, 0x9d, 0xc9, 0x54, 0x61, 0x6f} };
+const effect_uuid_t * const SL_IID_VQE = &SL_IID_VQE_;
+
+// Dolby Atmos
+static const effect_uuid_t SL_IID_GAMEDAP_ = // 3783c334-d3a0-4d13-874f-0032e5fb80e2
+{ 0x3783c334, 0xd3a0, 0x4d13, 0x874f, {0x00, 0x32, 0xe5, 0xfb, 0x80, 0xe2} };
+const effect_uuid_t * const SL_IID_GAMEDAP = &SL_IID_GAMEDAP_;
+
+// Dolby Atmos HW
+static const effect_uuid_t SL_IID_DAP_HW_ = // a0c30891-8246-4aef-b8ad-d53e26da0253
+{ 0xa0c30891, 0x8246, 0x4aef, 0xb8ad, {0xd5, 0x3e, 0x26, 0xda, 0x02, 0x53} };
+const effect_uuid_t * const SL_IID_DAP_HW = &SL_IID_DAP_HW_;
+
+// Dolby Atmos SW
+static const effect_uuid_t SL_IID_DAP_SW_ = // 6ab06da4-c516-4611-8166-452799218539
+{ 0x6ab06da4, 0xc516, 0x4611, 0x8166, {0x45, 0x27, 0x99, 0x21, 0x85, 0x39} };
+const effect_uuid_t * const SL_IID_DAP_SW = &SL_IID_DAP_SW_;
+
+// James DSP
+static const effect_uuid_t SL_IID_JDSP_ = // f27317f4-c984-4de6-9a90-545759495bf2
+{ 0xf27317f4, 0xc984, 0x4de6, 0x9a90, {0x54, 0x57, 0x59, 0x49, 0x5b, 0xf2} };
+const effect_uuid_t * const SL_IID_JDSP = &SL_IID_JDSP_;
+
 /* static */
 bool AudioFlinger::EffectChain::isEffectEligibleForBtNrecSuspend(const effect_uuid_t *type)
 {
@@ -2857,16 +2882,34 @@ bool AudioFlinger::EffectChain::isEffectEligibleForBtNrecSuspend(const effect_uu
 
 bool AudioFlinger::EffectChain::isEffectEligibleForSuspend(const effect_descriptor_t& desc)
 {
+    bool result = true;
     // auxiliary effects and visualizer are never suspended on output mix
     if ((mSessionId == AUDIO_SESSION_OUTPUT_MIX) &&
         (((desc.flags & EFFECT_FLAG_TYPE_MASK) == EFFECT_FLAG_TYPE_AUXILIARY) ||
          (memcmp(&desc.type, SL_IID_VISUALIZATION, sizeof(effect_uuid_t)) == 0) ||
          (memcmp(&desc.type, SL_IID_VOLUME, sizeof(effect_uuid_t)) == 0) ||
          (memcmp(&desc.type, SL_IID_DYNAMICSPROCESSING, sizeof(effect_uuid_t)) == 0) ||
+         (memcmp(&desc.type, SL_IID_DAP_HW, sizeof(effect_uuid_t)) == 0) ||
+         (memcmp(&desc.type, SL_IID_DAP_SW, sizeof(effect_uuid_t)) == 0) ||
+         (memcmp(&desc.type, SL_IID_JDSP, sizeof(effect_uuid_t)) == 0) ||
+         (memcmp(&desc.type, SL_IID_GAMEDAP, sizeof(effect_uuid_t)) == 0) ||
+         (memcmp(&desc.type, SL_IID_VQE, sizeof(effect_uuid_t)) == 0) ||
          (memcmp(&desc.type, SL_IID_DAP, sizeof(effect_uuid_t)) == 0))) {
-        return false;
+        result =  false;
     }
-    return true;
+
+    String8 effect;
+    effect.appendFormat("\t\t- name: %s\n",
+            desc.name);
+
+    char uuidStr[64];
+    AudioEffect::guidToString(&desc.uuid, uuidStr, sizeof(uuidStr));
+    effect.appendFormat("\t\t- UUID: %s\n", uuidStr);
+    AudioEffect::guidToString(&desc.type, uuidStr, sizeof(uuidStr));
+    effect.appendFormat("\t\t- TYPE: %s\n", uuidStr);
+    ALOGI("isEffectEligibleForSuspend:%s, result=%d\n", effect.c_str(), result);
+
+    return result;
 }
 
 void AudioFlinger::EffectChain::getSuspendEligibleEffects(
