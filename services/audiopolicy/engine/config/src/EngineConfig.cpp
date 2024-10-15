@@ -663,6 +663,7 @@ private:
 
 ParsingResult parse(const char* path) {
     XmlErrorHandler errorHandler;
+    ALOGW("%s: try to parse document %s", __FUNCTION__, path);
     auto doc = make_xmlUnique(xmlParseFile(path));
     if (doc == NULL) {
         // It is OK not to find an engine config file at the default location
@@ -697,6 +698,8 @@ ParsingResult parse(const char* path) {
                 doc.get(), cur, config->criterionTypes, nbSkippedElements);
     deserializeCollection<VolumeGroupTraits>(
                 doc.get(), cur, config->volumeGroups, nbSkippedElements);
+
+    ALOGW("%s: document %s parsed. Skipped %zu elements.", __FUNCTION__, path, nbSkippedElements);
 
     return {std::move(config), nbSkippedElements};
 }
