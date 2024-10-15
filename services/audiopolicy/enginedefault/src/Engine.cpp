@@ -268,15 +268,15 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
     DeviceVector devices;
     char value[PROPERTY_VALUE_MAX];
 
-    ALOGW("%s request devices for strategy :%d", __func__, strategy);
+    ALOGVV("%s request devices for strategy :%d", __func__, strategy);
 
     if( strategy == STRATEGY_SONIFICATION_RESPECTFUL ) {
         property_get("persist.baikal.sonif_a2dp", value, "0");
         if( std::string(value) == "1" ) {
-            ALOGW("%s strategy enforce STRATEGY_ENFORCED_AUDIBLE: %d", __func__, strategy);
+            ALOGVV("%s strategy enforce STRATEGY_ENFORCED_AUDIBLE: %d", __func__, strategy);
             strategy = STRATEGY_ENFORCED_AUDIBLE;
         } else if( std::string(value) == "2" ) {
-            ALOGW("%s strategy enforce STRATEGY_SONIFICATION: %d", __func__, strategy);
+            ALOGVV("%s strategy enforce STRATEGY_SONIFICATION: %d", __func__, strategy);
             strategy = STRATEGY_SONIFICATION;
         }
     }
@@ -284,13 +284,13 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
     switch (strategy) {
 
     case STRATEGY_TRANSMITTED_THROUGH_SPEAKER:
-        ALOGW("%s strategy TRANSMITTED_THROUGH_SPEAKER: %d", __func__, strategy);
+        //ALOGW("%s strategy TRANSMITTED_THROUGH_SPEAKER: %d", __func__, strategy);
         devices = availableOutputDevices.getDevicesFromType(AUDIO_DEVICE_OUT_SPEAKER);
         break;
 
 
     case STRATEGY_ENFORCED_AUDIBLE:
-        ALOGW("%s strategy STRATEGY_ENFORCED_AUDIBLE: %d", __func__, strategy);
+        ALOGV("%s strategy STRATEGY_ENFORCED_AUDIBLE: %d", __func__, strategy);
         devices = availableOutputDevices.getFirstDevicesFromTypes({
                 AUDIO_DEVICE_OUT_DGTL_DOCK_HEADSET, AUDIO_DEVICE_OUT_SPEAKER});
         break;
@@ -379,7 +379,7 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
 
         if ((devices2.isEmpty()) &&
             (getForceUse(AUDIO_POLICY_FORCE_FOR_MEDIA) == AUDIO_POLICY_FORCE_SPEAKER)) {
-            ALOGW("%s strategy AUDIO_POLICY_FORCE_SPEAKER: %d", __func__, strategy);
+            ALOGV("%s strategy AUDIO_POLICY_FORCE_SPEAKER: %d", __func__, strategy);
             devices2 = availableOutputDevices.getDevicesFromType(AUDIO_DEVICE_OUT_SPEAKER);
         }
 
@@ -409,12 +409,12 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
         if (devices2.isEmpty() && (getLastRemovableMediaDevices().size() > 0)) {
             if ((getForceUse(AUDIO_POLICY_FORCE_FOR_MEDIA) != AUDIO_POLICY_FORCE_NO_BT_A2DP)) {
                 // Get the last connected device of wired and bluetooth a2dp
-                ALOGW("%s strategy !AUDIO_POLICY_FORCE_NO_BT_A2DP: %d", __func__, strategy);
+                ALOGVV("%s strategy !AUDIO_POLICY_FORCE_NO_BT_A2DP: %d", __func__, strategy);
                 devices2 = availableOutputDevices.getFirstDevicesFromTypes(
                         getLastRemovableMediaDevices());
             } else {
                 // Get the last connected device of wired except bluetooth a2dp
-                ALOGW("%s strategy AUDIO_POLICY_FORCE_NO_BT_A2DP: %d", __func__, strategy);
+                ALOGVV("%s strategy AUDIO_POLICY_FORCE_NO_BT_A2DP: %d", __func__, strategy);
                 devices2 = availableOutputDevices.getFirstDevicesFromTypes(
                         getLastRemovableMediaDevices(GROUP_WIRED));
             }
@@ -433,7 +433,7 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
             devices2 = availableOutputDevices.getDevicesFromType(AUDIO_DEVICE_OUT_PROXY);
         }
         if (devices2.isEmpty()) {
-            ALOGW("%s strategy force add AUDIO_DEVICE_OUT_SPEAKER: %d", __func__, strategy);
+            //ALOGW("%s strategy force add AUDIO_DEVICE_OUT_SPEAKER: %d", __func__, strategy);
             devices2 = availableOutputDevices.getFirstDevicesFromTypes({
                         AUDIO_DEVICE_OUT_DGTL_DOCK_HEADSET, AUDIO_DEVICE_OUT_SPEAKER});
         }
@@ -481,21 +481,21 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
         } break;
 
     case STRATEGY_CALL_ASSISTANT:
-        ALOGW("%s strategy CALL_ASSISTANT: %d", __func__, strategy);
+        ALOGVV("%s strategy CALL_ASSISTANT: %d", __func__, strategy);
         devices = availableOutputDevices.getDevicesFromType(AUDIO_DEVICE_OUT_TELEPHONY_TX);
         break;
 
     case STRATEGY_NONE:
-        ALOGW("%s strategy NONE: %d", __func__, strategy);
+        ALOGVV("%s strategy NONE: %d", __func__, strategy);
         break;
 
     default:
-        if(strategy != -1) ALOGW("%s unknown strategy: %d", __func__, strategy);
+        if(strategy != -1) ALOGVV("%s unknown strategy: %d", __func__, strategy);
         break;
     }
 
     if (devices.isEmpty()) {
-        if(strategy != -1) ALOGW("%s no device found for strategy %d", __func__, strategy);
+        if(strategy != -1) ALOGVV("%s no device found for strategy %d", __func__, strategy);
         sp<DeviceDescriptor> defaultOutputDevice = getApmObserver()->getDefaultOutputDevice();
         if (defaultOutputDevice != nullptr) {
             devices.add(defaultOutputDevice);
@@ -504,7 +504,7 @@ DeviceVector Engine::getDevicesForStrategyInt(legacy_strategy strategy,
                  "%s no default device defined", __func__);
     }
 
-    if(strategy != -1) ALOGW("%s strategy %d, device %s", __func__,
+    if(strategy != -1) ALOGVV("%s strategy %d, device %s", __func__,
         strategy, dumpDeviceTypes(devices.types()).c_str());
 
     return devices;
